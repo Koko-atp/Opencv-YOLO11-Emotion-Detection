@@ -218,7 +218,7 @@ export default function Home() {
           bestRect = r;
         }
         ctx.strokeStyle = "lime";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1;
         ctx.strokeRect(r.x, r.y, r.width, r.height);
       }
 
@@ -261,14 +261,17 @@ export default function Home() {
         setEmotion(classes[maxIdx] ?? `class_${maxIdx}`);
         setConf(probs[maxIdx] ?? 0);
 
-        ctx.fillStyle = "rgba(0,0,0,0.6)";
-        ctx.fillRect(bestRect.x, Math.max(0, bestRect.y - 28), 220, 28);
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        ctx.fillRect(bestRect.x, Math.max(0, bestRect.y - 28),bestRect.width , 28);
+        if (bestRect.width < 120){
+          ctx.fillRect(bestRect.x, Math.max(0, bestRect.y - 28),120 , 28);
+        }
         ctx.fillStyle = "white";
         ctx.font = "16px sans-serif";
         ctx.fillText(
           `${classes[maxIdx]} ${(probs[maxIdx] * 100).toFixed(1)}%`,
           bestRect.x + 6,
-          bestRect.y - 8
+          bestRect.y - 8,
         );
       }
       
