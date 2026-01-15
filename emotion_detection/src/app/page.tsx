@@ -164,6 +164,7 @@ export default function Home() {
         float[idx++] = c === 0 ? r : c === 1 ? g : b;
       }
     }
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     return new ort.Tensor("float32", float, [1, 3, size, size]);
   }
@@ -191,11 +192,13 @@ export default function Home() {
         requestAnimationFrame(loop);
         return;
       }
+   const ctx = canvas.getContext("2d")!;
+      const displayWidth = 580;
+const displayHeight = 460;
+canvas.width = displayWidth;
+canvas.height = displayHeight;
+ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
 
-      const ctx = canvas.getContext("2d")!;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
 
       // OpenCV: read frame
       const src = cv.imread(canvas);
@@ -287,71 +290,152 @@ export default function Home() {
   }
 
   // Boot sequence
-  useEffect(() => {
-    (async () => {
-      try {
-        setStatus("กำลังโหลด OpenCV...");
-        await loadOpenCV();
+ useEffect(() => {
+  (async () => {
+    try {
+      setStatus("กำลังโหลด OpenCV...");
+      await loadOpenCV();
 
-        setStatus("กำลังโหลด Haar cascade...");
-        await loadCascade();
+      setStatus("กำลังโหลด Haar cascade...");
+      await loadCascade();
 
-        setStatus("กำลังโหลดโมเดล ONNX...");
-        await loadModel();
+      setStatus("กำลังโหลดโมเดล ONNX...");
+      await loadModel();
 
-        setStatus("พร้อม เริ่มกดปุ่ม Start");
+      setStatus("พร้อม กดปุ่ม Start");
+    } catch (e: any) {
+      setStatus(`เริ่มต้นไม่สำเร็จ: ${e?.message ?? e}`);
+    }
+  })();
+}, []);
 
-        startCamera();////
-
-      } catch (e: any) {
-        setStatus(`เริ่มต้นไม่สำเร็จ: ${e?.message ?? e}`);
-      }
-    })();
-  }, []);
 
   return (
-    <main className="min-h-screen p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Face Emotion (OpenCV + YOLO11-CLS)</h1>
+   <main
+  className="min-h-screen p-6 bg-repeat flex items-center justify-center"
+  style={{
+    backgroundImage: "url('/bg1.jpg')",
+    backgroundRepeat: "repeat",
+    backgroundSize: "cover",
+  }}
+>
+  <div className="flex flex-col items-center space-y-6">
 
-      <div className="space-y-2">
-        <div className="text-sm">สถานะ: {status}</div>
-        <div className="text-sm">
-          Emotion: <b>{emotion}</b> | Conf: <b>{(conf * 100).toFixed(2)}%</b>
-        </div>
+
+    {/* Title */}
+    <h1
+      className="
+        inline-block
+        text-5xl
+        text-black
+        font-sarabun
+        bg-blue-200
+        border-2
+        border-black
+        rounded-full 
+        shadow-xl
+        px-4
+        py-2
+      "
+    >
+      Face Emotion ˙✧˖°📷 ⋆
+    </h1>
+
+    {/* Status */}
+    <div className="text-center bg-white/70 px-4 py-2 rounded-xl border">
+      <div className="text-sm">สถานะ: {status}</div>
+      <div className="text-sm">
+        Emotion: <b>{emotion}</b> | Conf: <b>{(conf * 100).toFixed(2)}%</b>
       </div>
+    </div>
 
-        <center>
-      <div className="flex gap-3">
+    {/* Main content: camera + reaction */}
+    <div className="flex gap-12 items-start">
 
-        {/* <button
-          className="px-4 py-2 rounded bg-black text-white"
-          onClick={startCamera}
-        >
-          Start Camera
-        </button> */}
+      {/* LEFT: Camera + Note */}
+      <div className="flex flex-col items-center space-y-3">
 
-      </div>
-
-        <p>Honest Reaction</p>
-      <div className=" flex gap-10 w-full max-w-1xl bg-center">
-        
         <video ref={videoRef} className="hidden" playsInline />
 
-        <canvas
-          ref={canvasRef}
-          className="rounded border-b-fuchsia-600 w-2xl"
-          />
+        <div className="camera-frame">
+          <canvas ref={canvasRef} className="camera-screen" />
+        </div>
 
-      {emotion === "neutral"? <Image src={normal}  className="max-w-sm max-h-sm" alt="normal"/> : null}
-      {emotion === "surprise"? <Image src={shock} alt="surprise" className="max-w-2xl"/> : null }
-      {emotion === "happy"? <Image src={happymonk}  className="max-w-1xl max-h-1xl" alt="happy"/> : null}
-      {emotion === "angry"? <Image src={angry}  className="max-w-2xs max-h-1/2" alt="angry"/> : null}
+        <p
+          className="
+            inline-block
+            text-sm
+            font-extralight
+            bg-blue-200
+            text-amber-900
+            border-2 border-black
+            rounded-full
+            shadow-xl
+            px-3
+            py-2
+            transition
+  duration-300
+  hover:bg-blue-300
+  hover:scale-105
+          "
+        >
+          หมายเหตุ: ต้องกดปุ่ม Start เพื่อขอสิทธิ์เปิดกล้อง <br />
+          Note: Press “Start” to enable the camera
+        </p>
+
+        <button
+  onClick={startCamera}
+  className="
+    mt-2
+    px-6 py-2
+    rounded-full
+    bg-white
+    text-black
+    border-2 border-black
+    font-semibold
+    shadow-lg
+    transition
+    duration-300
+    hover:bg-green-300
+    hover:scale-105
+  "
+>
+  Start Camera
+</button>
+
       </div>
-      </center>
 
-      <p className="text-sm text-gray-600">
-        หมายเหตุ: ต้องกดปุ่ม Start เพื่อขอสิทธิ์เปิดกล้อง
-      </p>
-    </main>
-  );
+      {/* RIGHT: Honest Reaction + Image */}
+      <div className="flex flex-col items-center space-y-3">
+
+        <p
+          className="
+            inline-block
+            text-sm
+            font-extralight
+            bg-blue-300
+            text-brown-700
+            border-2 border-black
+            rounded-full
+            shadow-xl
+            px-3
+            py-1
+          "
+        >
+          Honest Reaction ٩(◕‿◕)۶
+        </p>
+        <div className="max-w-full h-32">
+        {emotion === "neutral" && <Image src={normal} className="max-w-fit h-32" alt="normal" />}
+        {emotion === "surprise" && <Image src={shock} className="max-w-fit h-32" alt="surprise" />}
+        {emotion === "happy" && <Image src={happymonk} className="max-w-fit h-32" alt="happy" />}
+        {emotion === "angry" && <Image src={angry} className="max-w-fit h-32" alt="angry" />}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</main>
+  )
 }
