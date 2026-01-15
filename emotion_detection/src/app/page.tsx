@@ -116,7 +116,7 @@ export default function Home() {
   // 3) Load ONNX model + classes
   async function loadModel() {
     const session = await ort.InferenceSession.create(
-      "/models/emotion_yolo11n_cls.onnx",
+      "/models/best.onnx",
       { executionProviders: ["wasm"] }
     );
     sessionRef.current = session;
@@ -157,7 +157,7 @@ export default function Home() {
 
   // 5) Preprocess face ROI -> tensor
 function preprocessToTensor(faceCanvas: HTMLCanvasElement) {
-  const size = 128;
+  const size = 64;
  
   const tmp = document.createElement("canvas");
   tmp.width = size;
@@ -397,7 +397,7 @@ ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
         <video ref={videoRef} className="hidden h-10" playsInline />
 
         <div className=" rounded-2xl">
-          <canvas ref={canvasRef} className=" rounded-2xl h-100" />
+          <canvas ref={canvasRef} className=" rounded-2xl h-100 " />
         </div>
 
         <button
@@ -442,10 +442,10 @@ ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
           Honest Reaction ٩(◕‿◕)۶
         </p>
         <div className="max-w-full h-32 rounded-2xl conte">
-        {emotion === "neutral" && <Image src={normal} className="max-w-fit h-32 rounded-2xl" alt="normal" />}
-        {emotion === "surprise" && <Image src={shock} className="max-w-fit h-32 rounded-2xl" alt="surprise" />}
-        {emotion === "happy" && <Image src={happymonk} className="max-w-fit h-32 rounded-2xl" alt="happy" />}
-        {emotion === "angry" && <Image src={angry} className="max-w-fit h-32 rounded-2xl" alt="angry" />}
+        {emotion === "neutral" && <p className="text-9xl">😐</p>}
+        {emotion === "happy" && <p className="text-9xl">😁</p>}
+        {emotion === "angry" && <p className="text-9xl">😡</p>}
+        {emotion === "sad" && <p className="text-9xl">😔</p>}
         </div>
 
       </div>
