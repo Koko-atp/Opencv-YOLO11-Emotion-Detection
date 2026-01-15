@@ -147,7 +147,8 @@ export default function Home() {
   function stopCamera() {
     setStatus("กำลังหยุด....");
     if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = videoRef.current.srcObject.getTracks();
+       const stream = videoRef.current.srcObject as MediaStream;
+      const tracks = stream.getTracks();
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
       setStatus("Start Camera")
