@@ -141,34 +141,30 @@ export default function Home() {
   }
 
   // 5) Preprocess face ROI -> tensor
-  function preprocessToTensor(faceCanvas: HTMLCanvasElement) {
-    // YOLO classification มักรับ input เป็น [1,3,H,W] float32 (0..1)
-    // เพื่อให้ง่าย: resize เป็น 64x64 และทำ RGB
-    const size = 64;
-    const tmp = document.createElement("canvas");
-    tmp.width = size;
-    tmp.height = size;
-    const ctx = tmp.getContext("2d")!;
-    ctx.drawImage(faceCanvas, 0, 0, size, size);
-
-    const imgData = ctx.getImageData(0, 0, size, size).data; // RGBA
-    const float = new Float32Array(1 * 3 * size * size);
-
-    // CHW
-    let idx = 0;
-    for (let c = 0; c < 3; c++) {
-      for (let i = 0; i < size * size; i++) {
-        const r = imgData[i * 4 + 0] / 255;
-        const g = imgData[i * 4 + 1] / 255;
-        const b = imgData[i * 4 + 2] / 255;
-        float[idx++] = c === 0 ? r : c === 1 ? g : b;
-      }
+function preprocessToTensor(faceCanvas: HTMLCanvasElement) {
+  const size = 224;
+ 
+  const tmp = document.createElement("canvas");
+  tmp.width = size;
+  tmp.height = size;
+  const ctx = tmp.getContext("2d")!;
+  ctx.drawImage(faceCanvas, 0, 0, size, size);
+ 
+  const imgData = ctx.getImageData(0, 0, size, size).data;
+  const float = new Float32Array(1 * 3 * size * size);
+ 
+  let idx = 0;
+  for (let c = 0; c < 3; c++) {
+    for (let i = 0; i < size * size; i++) {
+      const r = imgData[i * 4] / 255;
+      const g = imgData[i * 4 + 1] / 255;
+      const b = imgData[i * 4 + 2] / 255;
+      float[idx++] = c === 0 ? r : c === 1 ? g : b;
     }
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    return new ort.Tensor("float32", float, [1, 3, size, size]);
   }
-
+ 
+  return new ort.Tensor("float32", float, [1, 3, size, size]);
+}
   // 6) Softmax
   function softmax(logits: Float32Array) {
     let max = -Infinity;
