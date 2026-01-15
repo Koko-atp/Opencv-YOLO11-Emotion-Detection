@@ -23,7 +23,7 @@ export default function Home() {
   const faceCascadeRef = useRef<any>(null);
   const sessionRef = useRef<ort.InferenceSession | null>(null);
   const classesRef = useRef<string[] | null>(null);
-
+  const [startloop , setstloop] = useState<boolean>(false)
   // Load OpenCV.js
   // async function loadOpenCV() {
   //   if (typeof window === "undefined") return;
@@ -136,13 +136,28 @@ export default function Home() {
     if (!videoRef.current) return;
     videoRef.current.srcObject = stream;
     await videoRef.current.play();
-    setStatus("กำลังทำงาน...");
-    requestAnimationFrame(loop);
+    if(startloop === false){
+      requestAnimationFrame(loop);
+      setstloop(true);
+    }
+    setStatus("Stop Camera");
   }
+  
+  
+  function stopCamera() {
+    setStatus("กำลังหยุด....");
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setStatus("Start Camera")
+    }
+}
+
 
   // 5) Preprocess face ROI -> tensor
 function preprocessToTensor(faceCanvas: HTMLCanvasElement) {
-  const size = 224;
+  const size = 128;
  
   const tmp = document.createElement("canvas");
   tmp.width = size;
@@ -298,7 +313,7 @@ ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
       setStatus("กำลังโหลดโมเดล ONNX...");
       await loadModel();
 
-      setStatus("พร้อม กดปุ่ม Start");
+      setStatus("Start Camera");
     } catch (e: any) {
       setStatus(`เริ่มต้นไม่สำเร็จ: ${e?.message ?? e}`);
     }
@@ -308,7 +323,7 @@ ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
 
   return (
    <main
-  className="min-h-screen p-6 bg-repeat flex items-center justify-center"
+  className="min-h-screen p-6 bg-repeat flex items-center justify-center max-h-screen"
   style={{
     backgroundImage: "url('/bg1.jpg')",
     backgroundRepeat: "repeat",
@@ -336,9 +351,36 @@ ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
     >
       Face Emotion ˙✧˖°📷 ⋆
     </h1>
+        <div className="
+        text-center
+        inline-block
+        text-sm
+        font-extralight
+        bg-blue-200
+        text-amber-900
+        border-2 border-black
+        rounded-full
+        shadow-xl
+        justify-self-start
+        px-3
+        py-2
+        transition
+        duration-300
+        hover:bg-blue-300
+        hover:scale-105" >
+          {status === "Start Camera" ?<p>
+          หมายเหตุ: ต้องกดปุ่ม Start เพื่อขอสิทธิ์เปิดกล้อง <br />
+          Note: Press “Start” to enable the camera
+          </p>:
+          <p>
+            หมายเหตุ: กด Stop Camera เพื่อหยุด <br/>
+            Note: Press "Stop Camera" to stopthe camera
+          </p>
+        }
+        </div>
 
     {/* Status */}
-    <div className="text-center bg-white/70 px-4 py-2 rounded-xl border">
+    <div className="text-center bg-white/70 px-4 py-2 rounded-xl border text-black">
       <div className="text-sm">สถานะ: {status}</div>
       <div className="text-sm">
         Emotion: <b>{emotion}</b> | Conf: <b>{(conf * 100).toFixed(2)}%</b>
@@ -349,54 +391,33 @@ ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
     <div className="flex gap-12 items-start">
 
       {/* LEFT: Camera + Note */}
-      <div className="flex flex-col items-center space-y-3">
+      <div className="flex flex-col  items-center space-y-1">
 
-        <video ref={videoRef} className="hidden" playsInline />
 
-        <div className="camera-frame">
-          <canvas ref={canvasRef} className="camera-screen" />
+        <video ref={videoRef} className="hidden h-10" playsInline />
+
+        <div className=" rounded-2xl">
+          <canvas ref={canvasRef} className=" rounded-2xl h-100" />
         </div>
 
-        <p
-          className="
-            inline-block
-            text-sm
-            font-extralight
-            bg-blue-200
-            text-amber-900
-            border-2 border-black
-            rounded-full
-            shadow-xl
-            px-3
-            py-2
-            transition
-  duration-300
-  hover:bg-blue-300
-  hover:scale-105
-          "
-        >
-          หมายเหตุ: ต้องกดปุ่ม Start เพื่อขอสิทธิ์เปิดกล้อง <br />
-          Note: Press “Start” to enable the camera
-        </p>
-
         <button
-  onClick={startCamera}
+  onClick={status === "Start Camera"? startCamera : stopCamera}
   className="
-    mt-2
-    px-6 py-2
-    rounded-full
-    bg-white
-    text-black
-    border-2 border-black
-    font-semibold
-    shadow-lg
+  mt-2
+  px-6 py-2
+  rounded-full
+  bg-white
+  text-black
+  border-2 border-black
+  font-semibold
+  shadow-lg
     transition
     duration-300
     hover:bg-green-300
     hover:scale-105
-  "
+    "
 >
-  Start Camera
+  {status}
 </button>
 
       </div>
@@ -420,11 +441,11 @@ ctx.drawImage(video, 0, 0, displayWidth, displayHeight);
         >
           Honest Reaction ٩(◕‿◕)۶
         </p>
-        <div className="max-w-full h-32">
-        {emotion === "neutral" && <Image src={normal} className="max-w-fit h-32" alt="normal" />}
-        {emotion === "surprise" && <Image src={shock} className="max-w-fit h-32" alt="surprise" />}
-        {emotion === "happy" && <Image src={happymonk} className="max-w-fit h-32" alt="happy" />}
-        {emotion === "angry" && <Image src={angry} className="max-w-fit h-32" alt="angry" />}
+        <div className="max-w-full h-32 rounded-2xl conte">
+        {emotion === "neutral" && <Image src={normal} className="max-w-fit h-32 rounded-2xl" alt="normal" />}
+        {emotion === "surprise" && <Image src={shock} className="max-w-fit h-32 rounded-2xl" alt="surprise" />}
+        {emotion === "happy" && <Image src={happymonk} className="max-w-fit h-32 rounded-2xl" alt="happy" />}
+        {emotion === "angry" && <Image src={angry} className="max-w-fit h-32 rounded-2xl" alt="angry" />}
         </div>
 
       </div>
